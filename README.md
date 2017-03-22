@@ -1,0 +1,2 @@
+# daftfunc.js
+
