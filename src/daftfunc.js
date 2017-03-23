@@ -93,7 +93,7 @@ let df = (function(){
       set: function(arr){this[save ? this.length : this.last] = arr;}
     });
     
-    store.current = cloneConvertArray(arr);
+    store.current = newArray(arr);
     store.save = _save;
     
     return store;
@@ -122,7 +122,7 @@ let df = (function(){
       transform: function(fn){return generate(transform, fn, this);},
       keepIf: function(fn){return generate(keepIf, fn, this);},
       removeIf: function(fn){return generate(removeIf, fn, this);},
-      $result: function(n = store.last){return retrieve(function(n){return cloneArray(store[n]);}, n);},
+      $result: function(n = store.last){return retrieve(function(n){return newArray(store[n]);}, n);},
       $length: function(n = store.last){return retrieve(function(n){return store[n].length;}, n);},
       $idx: function(i, n = store.last){return retrieve(function(n){return store[n][i];}, n, i);},
       $nSaved: function(){return store.length;}
