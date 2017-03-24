@@ -22,11 +22,20 @@ let df = (function(){
   const isFunction = function(candidate){
     return stringRep(candidate) === "[object Function]";
   };
-    
-  const validateFunction = function(func){
-    if(!(isFunction(func))){throw new TypeError(func + ' is not a function');}
-    return func;
+  
+  const isNumber = function(candidate){
+    return stringRep(candidate) === "[object Number]" && !isNaN(candidate);
   };
+  
+  const validate = function(func, entity){
+    return function(candidate){
+      if(!func(candidate)){throw new TypeError(candidate + ' is not a ' + entity);}
+      return candidate;
+    };
+  };
+  
+  const validateFunction = validate(isFunction, "function");
+  const validateNumber = validate(isNumber, "number");
   
   const pipe = function(...funcs){
     if(!funcs.length){
@@ -42,13 +51,15 @@ let df = (function(){
   
   const compose = function(...funcs){return pipe(...(funcs.reverse()));};
   
-  
   const partial = function(func, ...args){
     return validateFunction(func).bind(null, ...args);
   };
   
-  const maxArity = function(n){
+  const restrictArity = function(n){
+    validateNumber(n);
+    if(n < 0){throw new RangeError(n + ' is too small');}
     return function(func){
+      validateFunction(func);
       return function(..._args){
         let args = _args.slice(0, n);
         return func(...args);
@@ -56,7 +67,7 @@ let df = (function(){
     };
   };
   
-  const binary = maxArity(2);
+  const binary = restrictArity(2);
   
   
   const useMethod = function(arity, method, wrapper){
@@ -130,20 +141,25 @@ let df = (function(){
     
   };
   
-  const forceArrayCall = function(func){
-    return function(fn, _arr){
-      let arr = isArray(_arr) ? _arr : newArray(_arr);
-      return func(fn, arr);
+  const newArrayCall = function(func){
+    return function(fn, arr){
+      return func(fn, newArray(arr));
     };
   };
   
-  dfOut.transform = forceArrayCall(transform);
-  dfOut.keepIf = forceArrayCall(keepIf);
-  dfOut.removeIf = forceArrayCall(removeIf);
+  dfOut.transform = newArrayCall(transform);
+  dfOut.keepIf = newArrayCall(keepIf);
+  dfOut.removeIf = newArrayCall(removeIf);
   
   dfOut.pipe = pipe;
   dfOut.compose = compose;
   dfOut.partial = partial;
+  
+  dfOut.restrictArity = restrictArity;
+  dfOut.nullary = restrictArity(0);
+  dfOut.unary = restrictArity(1);
+  dfOut.binary = binary;
+  dfOut.ternary = restrictArity(3);
   
   return dfOut;
   
