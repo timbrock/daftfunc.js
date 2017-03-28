@@ -386,6 +386,52 @@
     });
     
     
+    describe("sort function", function(){
+      let sort = df.sort;
+      let arr = [33, 121, 2];
+      let arr2 = ["33", "121", "2"];
+      let numericSort = df.sorts.numeric;
+      let lexicalSort = df.sorts.lexical;
+      
+      it("should throw error if no arguments passed in", function(){
+        expect(function(){sort();}).toThrow();
+      });
+      
+      it("should throw error if non-function passed in as first argument", function(){
+        expect(function(){sort([]);}).toThrow();
+        expect(function(){sort({});}).toThrow();
+        expect(function(){sort("");}).toThrow();
+      });
+      
+      it("should return empty array if no array passed in", function(){
+        expect(sort(numericSort)).toEqual([]);
+        expect(sort(lexicalSort)).toEqual([]);
+      });
+      
+      it("should return sorted array if appropriate function and array passed in.", function(){
+        expect(sort(numericSort, arr)).toEqual([2, 33, 121]);
+        expect(sort(lexicalSort, arr)).toEqual([121, 2, 33]);
+        expect(sort(numericSort, arr2)).toEqual(["2", "33", "121"]);
+        expect(sort(lexicalSort, arr2)).toEqual(["121", "2", "33"]);
+      });
+      
+    });
+    
+    
+    describe("shuffler function", function(){
+      let shuffle = df.shuffler();
+      let arr = [1, 233, 44, 67, 98, 79, "a", {}];
+      
+      it("should return empty array if no arguments passed in", function(){
+        expect(shuffle()).toEqual([]);
+      });
+      
+      
+      it("should return shuffled array if array passed in", function(){
+        expect(shuffle(arr).length).toEqual(arr.length);
+      });
+      
+    });
     
     
   });
