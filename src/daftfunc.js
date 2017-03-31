@@ -106,6 +106,26 @@ let df = (function(){
     return quickRemove(nRemove, arr) || arr.slice(0, arr.length - nRemove);
   };
   
+  const prepend = function(_array, arr){
+    let array = newArray(_array);
+    return array.concat(arr);
+  };
+  
+  const append = function(_array, arr){
+    let array = newArray(_array);
+    return arr.concat(array);
+  };
+  
+  const mergeWith = function(func, _array, arr){
+    let array = newArray(_array);
+    let n = (arr.length > array.length) ? arr.length : arr.length;
+    let outArray = Array(n).fill(undefined);
+    for(let i=0; i<n; i++){
+      outArray[i] = func(arr[i], array[i], i);
+    }
+    return outArray;
+  };
+  
   const reverse = function(arr){
     return newArray(arr).reverse();
   };
@@ -114,6 +134,7 @@ let df = (function(){
     validateFunction(func);
     return newArray(arr).sort(func);
   };
+  
   
   //http://stackoverflow.com/a/12646864
   const shuffler = function(nextRandom = Math.random){
@@ -162,8 +183,10 @@ let df = (function(){
   };
   
   const add = simpleMaths(function(a, b){return a+b;});
+  const increment = add(1);
   const subtract = simpleMaths(function(a, b){return a-b;});
   const subtractFrom = simpleMaths(function(a, b){return b-a;});
+  const decrement = subtract(1);
   const multiplyBy = simpleMaths(function(a, b){return a*b;});
   const raiseToPower = simpleMaths(function(a, b){return Math.pow(a, b);});
   const exponentiate = simpleMaths(function(a, b){return Math.pow(b, a);});
@@ -172,10 +195,36 @@ let df = (function(){
   const modulo = simpleMaths(function(a, b){return a%b;});
   const reciprocate = divide(1);
   
+  
+  const simpleComparison = function(func){
+    return function(storedVal){
+      return function(val){
+        return func(val, storedVal);
+      };
+    };
+  };  
+  
+  
+  const equal = simpleComparison(function(a, b){return a === b;});
+  const notEqual = simpleComparison(function(a, b){return a !== b;});
+  const greaterThan = simpleComparison(function(a, b){return a > b;});
+  const greaterOrEqual = simpleComparison(function(a, b){return a >= b;});
+  const lessThan = simpleComparison(function(a, b){return a < b;});
+  const lessOrEqual = simpleComparison(function(a, b){return a <= b;});
+  
+  
   const pluck = function(prop){
     return function(obj){
       return hasProperty(obj, prop) ? obj[prop] : undefined;
     };
+  };
+  
+  const elementLength = function(element){
+    let out;
+    if(isArrayable(element)){
+      out = element.length !== undefined ? element.length : element.size;
+    }
+    return out;
   };
   
   const modify = function(func, arr){
@@ -245,14 +294,20 @@ let df = (function(){
       removeIf: function(fn){return generate(this, removeIf, fn);},
       removeFirst: function(nRemove = 1){return generate(this, removeFirst, nRemove);},
       removeLast: function(nRemove = 1){return generate(this, removeLast, nRemove);},
+      prepend: function(array){return generate(this, prepend, array);},
+      append: function(array){return generate(this, append, array);},
+      mergeWith: function(array, fn){return generate(this, mergeWith, fn, array);},
+      replaceWith: function(arr){return generate(this, function(){return newArray(arr);});},
       reverse: function(fn){return generate(this, reverse);},
       sort: function(fn){return generate(this, sort, fn);},
       shuffle: function(){return generate(this, shuffle);},
       rotate: function(nRotate){return generate(this, rotate, nRotate);},
       unique: function(){return generate(this, unique);},
       add: function(adder){return generate(this, transform, add(adder));},
+      increment: function(){return generate(this, transform, increment);},
       subtract: function(subtractor){return generate(this, transform, subtract(subtractor));},
       subtractFrom: function(subtractor){return generate(this, transform, subtractFrom(subtractor));},
+      decrement: function(){return generate(this, transform, decrement);},
       multiplyBy: function(multiplier){return generate(this, transform, multiplyBy(multiplier));},
       raiseToPower: function(power){return generate(this, transform, raiseToPower(power));},
       exponentiate: function(base){return generate(this, transform, exponentiate(base));},
@@ -260,13 +315,19 @@ let df = (function(){
       divideBy: function(divisor){return generate(this, transform, divideBy(divisor));},
       modulo: function(divisor){return generate(this, transform, modulo(divisor));},
       reciprocate: function(){return generate(this, transform, reciprocate);},
+      equal: function(comparator){return generate(this, transform, equal(comparator));},
+      notEqual: function(comparator){return generate(this, transform, notEqual(comparator));},
+      lessThan: function(comparator){return generate(this, transform, lessThan(comparator));},
+      lessOrEqual: function(comparator){return generate(this, transform, lessOrEqual(comparator));},
+      greaterThan: function(comparator){return generate(this, transform, greaterThan(comparator));},
+      greaterOrEqual: function(comparator){return generate(this, transform, greaterOrEqual(comparator));},
       pluck: function(prop){return generate(this, transform, pluck(prop));},
       modify: function(fn){return generate(this, modify, fn);},
       clear: function(){return generate(this, returnConstant([]));},
-      introduce: function(arr){return generate(this, function(){return newArray(arr);});},
       $result: function(n = store.last){return retrieve(function(n){return newArray(store[n]);}, n);},
       $length: function(n = store.last){return retrieve(function(n){return store[n].length;}, n);},
       $idx: function(i, n = store.last){return retrieve(function(n){return store[n][i];}, n, i);},
+      $elementLengths: function(n = store.last){return retrieve(function(n){return transform(elementLength, store[n]);}, n);},
       $nSaved: function(){return store.length;}
     });
     
